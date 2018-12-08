@@ -7,54 +7,54 @@
 Paths* lcpat
 (
 	int n_vertices,
-	int startVertex,
+	int start_vertex,
 	double** edgeCosts,
-	double stepCost,
-	double thresholdCost,
+	double step_cost,
+	double threshold_cost,
 	BackTrackMemory* memory
 )
 {
 	Paths* paths = NULL;
 
-	if (thresholdCost > stepCost) {
-		Paths* leftPaths = lcpat (
+	if (threshold_cost > step_cost) {
+		Paths* left_paths = lcpat (
 					n_vertices,
-					startVertex,
+					start_vertex,
 					edgeCosts,
-					stepCost,
-					stepCost,
+					step_cost,
+					step_cost,
 					memory
 				);
 
-		for (int i = 0; i < leftPaths->count; i++) {
-			Path leftPath = leftPaths->paths[i];
-			int pathLastVertex = leftPath.vertices[leftPath.length - 1];
+		for (int i = 0; i < left_paths->count; i++) {
+			Path left_path = left_paths->paths[i];
+			int path_last_vertex = left_path.vertices[left_path.length - 1];
 			for (int j = 0; j < n_vertices; j++) {
 				if (
-					j == pathLastVertex
-					|| edgeCosts[pathLastVertex][j] < 0
+					j == path_last_vertex
+					|| edgeCosts[path_last_vertex][j] < 0
 				) continue;
 
-				Paths* rightPaths = lcpat (
+				Paths* right_paths = lcpat (
 					n_vertices,
 					j,
 					edgeCosts,
-					stepCost,
-					thresholdCost - leftPath.cost,
+					step_cost,
+					threshold_cost - left_path.cost,
 					memory
 				);
 
 				paths = lcpat_combine_paths (
 					paths,
-					lcpat_merge_paths (leftPath, rightPaths)
+					lcpat_merge_paths (left_path, right_paths)
 				);
 			}
 		}
 
 	} else {
 		paths = lcpat_backtrack_recall (
-			startVertex,
-			thresholdCost,
+			start_vertex,
+			threshold_cost,
 			memory
 		);
 
@@ -62,13 +62,13 @@ Paths* lcpat
 			paths = lcpat_backtrack (
 				n_vertices,
 				edgeCosts,
-				startVertex,
-				thresholdCost
+				start_vertex,
+				threshold_cost
 			);
 
 			lcpat_backtrack_remember (
-				startVertex,
-				thresholdCost,
+				start_vertex,
+				threshold_cost,
 				paths,
 				memory
 			);
@@ -80,8 +80,8 @@ Paths* lcpat
 
 Paths* lcpat_backtrack_recall
 (
-	int startVertex,
-	double thresholdCost,
+	int start_vertex,
+	double threshold_cost,
 	BackTrackMemory* memory
 )
 {
@@ -90,8 +90,8 @@ Paths* lcpat_backtrack_recall
 
 void lcpat_backtrack_remember
 (
-	int startVertex,
-	double thresholdCost,
+	int start_vertex,
+	double threshold_cost,
 	Paths* paths,
 	BackTrackMemory* memory
 )
@@ -106,8 +106,8 @@ Paths* lcpat_backtrack
 (
 	int n_vertices,
 	double** edgeCosts,
-	int startVertex,
-	double thresholdCost
+	int start_vertex,
+	double threshold_cost
 )
 {
 
@@ -115,8 +115,8 @@ Paths* lcpat_backtrack
 
 Paths* lcpat_merge_paths
 (
-	Path leftPath,
-	Paths* rightPaths
+	Path left_path,
+	Paths* right_paths
 )
 {
 
