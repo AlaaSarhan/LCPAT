@@ -1,6 +1,6 @@
 #include "stdlib.h"
+#include "string.h"
 #include "lcpat.h"
-
 /**
  * 
  */
@@ -85,7 +85,7 @@ Paths* lcpat_backtrack_recall
 	BackTrackMemory* memory
 )
 {
-
+	
 }
 
 void lcpat_backtrack_remember
@@ -119,7 +119,35 @@ Paths* lcpat_merge_paths
 	Paths* right_paths
 )
 {
+	int count = right_paths->count;
+	
+	Path paths[count];
+	for (int i = 0; i < count; i++) {
+		Path path;
+		Path right_path = right_paths->paths[i];
 
+		path.cost = left_path.cost + right_path.cost;
+		path.length = left_path.length = right_path.length;
+		path.vertices = malloc(sizeof(int) * path.length);
+
+		size_t left_path_vertices_size = sizeof(int) * left_path.length;
+		memcpy(
+			path.vertices,
+			left_path.vertices,
+			left_path_vertices_size
+		);
+		memcpy(
+			path.vertices + left_path_vertices_size,
+			right_path.vertices,
+			sizeof(int) * right_path.length
+		);
+	}
+
+	Paths* result = malloc(sizeof(Paths*));
+	result->count = count;
+	result->paths = paths;
+
+	return result;
 }
 
 Paths* lcpat_combine_paths
@@ -128,5 +156,27 @@ Paths* lcpat_combine_paths
 	Paths* paths2
 )
 {
+	int count = 0;
+	if (paths1 != NULL) {
+		count += paths1->count;
+	}
+	if (paths2 != NULL) {
+		count += paths2->count;
+	}
 
+	Path paths[count];
+	size_t copy_offset = 0;
+	if (paths1 != NULL) {
+		memcpy(paths + copy_offset, paths1->paths, sizeof(Path) * paths1->count);
+		copy_offset = sizeof(Path) * paths1->count;
+	}
+	if (paths2 != NULL) {
+		memcpy(paths + copy_offset, paths2->paths, sizeof(Path) * paths2->count);
+	}
+
+	Paths *result = malloc(sizeof(Path*));
+	result->count = count;
+	result->paths = paths;
+
+	return result;
 }
