@@ -35,14 +35,14 @@ Paths* lcpat
 	BackTrackMemory* memory
 );
 
-Paths* lcpat_backtrack_recall
+Paths* lcpat_recall
 (
 	int startVertex,
 	double thresholdCost,
 	BackTrackMemory* memory
 );
 
-void lcpat_backtrack_remember
+void lcpat_remember
 (
 	int startVertex,
 	double thresholdCost,
@@ -60,7 +60,8 @@ Paths* lcpat_backtrack
 
 Paths* lcpat_merge_paths
 (
-	Path leftPath,
+	Path* leftPath,
+	double jump_cost,
 	Paths* rightPaths
 );
 

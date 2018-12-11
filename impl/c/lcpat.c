@@ -1,6 +1,8 @@
 #include "stdlib.h"
 #include "string.h"
 #include "lcpat.h"
+#include "stdio.h"
+
 /**
  * 
  */
@@ -8,7 +10,7 @@ Paths* lcpat
 (
 	int n_vertices,
 	int start_vertex,
-	double** edgeCosts,
+	double** edge_costs,
 	double step_cost,
 	double threshold_cost,
 	BackTrackMemory* memory
@@ -18,27 +20,24 @@ Paths* lcpat
 
 	if (threshold_cost > step_cost) {
 		Paths* left_paths = lcpat (
-					n_vertices,
-					start_vertex,
-					edgeCosts,
-					step_cost,
-					step_cost,
-					memory
-				);
+			n_vertices,
+			start_vertex,
+			edge_costs,
+			step_cost,
+			step_cost,
+			memory
+		);
 
 		for (int i = 0; i < left_paths->count; i++) {
 			Path left_path = left_paths->paths[i];
 			int path_last_vertex = left_path.vertices[left_path.length - 1];
 			for (int j = 0; j < n_vertices; j++) {
-				if (
-					j == path_last_vertex
-					|| edgeCosts[path_last_vertex][j] < 0
-				) continue;
+				if (edge_costs[path_last_vertex][j] < 0) continue;
 
 				Paths* right_paths = lcpat (
 					n_vertices,
 					j,
-					edgeCosts,
+					edge_costs,
 					step_cost,
 					threshold_cost - left_path.cost,
 					memory
@@ -46,13 +45,17 @@ Paths* lcpat
 
 				paths = lcpat_combine_paths (
 					paths,
-					lcpat_merge_paths (left_path, right_paths)
+					lcpat_merge_paths (
+						&left_path,
+						edge_costs[path_last_vertex][j],
+						right_paths
+					)
 				);
 			}
 		}
 
 	} else {
-		paths = lcpat_backtrack_recall (
+		paths = lcpat_recall (
 			start_vertex,
 			threshold_cost,
 			memory
@@ -61,12 +64,12 @@ Paths* lcpat
 		if (paths == NULL) {
 			paths = lcpat_backtrack (
 				n_vertices,
-				edgeCosts,
+				edge_costs,
 				start_vertex,
 				threshold_cost
 			);
 
-			lcpat_backtrack_remember (
+			lcpat_remember (
 				start_vertex,
 				threshold_cost,
 				paths,
@@ -78,17 +81,17 @@ Paths* lcpat
 	return paths;
 }
 
-Paths* lcpat_backtrack_recall
+Paths* lcpat_recall
 (
 	int start_vertex,
 	double threshold_cost,
 	BackTrackMemory* memory
 )
 {
-	
+	return NULL;
 }
 
-void lcpat_backtrack_remember
+void lcpat_remember
 (
 	int start_vertex,
 	double threshold_cost,
@@ -96,54 +99,79 @@ void lcpat_backtrack_remember
 	BackTrackMemory* memory
 )
 {
-
 }
 
-/**
- * 
- */
 Paths* lcpat_backtrack
 (
 	int n_vertices,
-	double** edgeCosts,
+	double** edge_costs,
 	int start_vertex,
 	double threshold_cost
 )
 {
+	Path* currentVertexPath = malloc(sizeof(Path));
+	currentVertexPath->length = 1;
+	currentVertexPath->cost = 0;
+	currentVertexPath->vertices = &(int) { start_vertex };
 
+	Paths* paths = NULL;
+
+	if (threshold_cost <= 0) {
+		paths = malloc(sizeof(Paths));
+		paths->count = 1;
+		paths->paths = currentVertexPath;
+
+		return paths;
+	}
+
+	for (int i = 0; i < n_vertices; i++) {
+		if (edge_costs[start_vertex][i] <= 0) continue;
+
+		Paths* right_paths = lcpat_backtrack (
+			n_vertices,
+			edge_costs,
+			i,
+			threshold_cost - edge_costs[start_vertex][i]
+		);
+
+		paths = lcpat_combine_paths (
+			paths,
+			lcpat_merge_paths (currentVertexPath, edge_costs[start_vertex][i], right_paths)
+		);
+	}
+
+	return paths;
 }
 
 Paths* lcpat_merge_paths
 (
-	Path left_path,
+	Path* left_path,
+	double jump_cost,
 	Paths* right_paths
 )
 {
 	int count = right_paths->count;
-	
-	Path paths[count];
+
+	Path* paths = malloc(sizeof(Path) * count);
 	for (int i = 0; i < count; i++) {
-		Path path;
-		Path right_path = right_paths->paths[i];
 
-		path.cost = left_path.cost + right_path.cost;
-		path.length = left_path.length = right_path.length;
-		path.vertices = malloc(sizeof(int) * path.length);
+		paths[i].cost = left_path->cost + jump_cost + right_paths->paths[i].cost;
+		paths[i].length = left_path->length + right_paths->paths[i].length;
+		paths[i].vertices = malloc(paths[i].length * sizeof(int));
 
-		size_t left_path_vertices_size = sizeof(int) * left_path.length;
 		memcpy(
-			path.vertices,
-			left_path.vertices,
-			left_path_vertices_size
+			paths[i].vertices,
+			left_path->vertices,
+			left_path->length * sizeof(int)
 		);
 		memcpy(
-			path.vertices + left_path_vertices_size,
-			right_path.vertices,
-			sizeof(int) * right_path.length
+			paths[i].vertices + left_path->length,
+			right_paths->paths[i].vertices,
+			right_paths->paths[i].length * sizeof(int)
 		);
 	}
 
-	Paths* result = malloc(sizeof(Paths*));
+	Paths* result = malloc(sizeof(Paths));
 	result->count = count;
 	result->paths = paths;
 
@@ -164,17 +192,17 @@ Paths* lcpat_combine_paths
 		count += paths2->count;
 	}
 
-	Path paths[count];
+	Path* paths = malloc(sizeof(Path) * count);
 	size_t copy_offset = 0;
 	if (paths1 != NULL) {
 		memcpy(paths + copy_offset, paths1->paths, sizeof(Path) * paths1->count);
-		copy_offset = sizeof(Path) * paths1->count;
+		copy_offset = paths1->count;
 	}
 	if (paths2 != NULL) {
 		memcpy(paths + copy_offset, paths2->paths, sizeof(Path) * paths2->count);
 	}
 
-	Paths *result = malloc(sizeof(Path*));
+	Paths* result = malloc(sizeof(Paths));
 	result->count = count;
 	result->paths = paths;
 
