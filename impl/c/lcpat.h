@@ -1,5 +1,9 @@
 #include "stdlib.h"
 
+#ifndef __LCPAT_H__
+#define __LCPAT_H__ 1
+#define INITIAL_MEMORY_CAPACITY 50
+
 typedef struct
 {
 	int cost;
@@ -15,37 +19,39 @@ typedef struct
 
 typedef struct
 {
-	int startVertex;
-	int thresholdCost;
-	Paths paths;
+	int start_vertex;
+	int threshold_cost;
+	Paths* paths;
 } BackTrackCallMemory;
 
 typedef struct
 {
+	size_t count;
+	size_t capacity;
 	BackTrackCallMemory* callsMemory;
 } BackTrackMemory;
 
 Paths* lcpat
 (
 	int n_vertices,
-	int startVertex,
+	int start_vertex,
 	double** edgeCosts,
 	double stepCost,
-	double thresholdCost,
+	double threshold_cost,
 	BackTrackMemory* memory
 );
 
 Paths* lcpat_recall
 (
-	int startVertex,
-	double thresholdCost,
+	int start_vertex,
+	double threshold_cost,
 	BackTrackMemory* memory
 );
 
 void lcpat_remember
 (
-	int startVertex,
-	double thresholdCost,
+	int start_vertex,
+	double threshold_cost,
 	Paths* paths,
 	BackTrackMemory* memory
 );
@@ -54,8 +60,8 @@ Paths* lcpat_backtrack
 (
 	int n_vertices,
 	double** edgeCosts,
-	int startVertex,
-	double thresholdCost
+	int start_vertex,
+	double threshold_cost
 );
 
 Paths* lcpat_merge_paths
@@ -70,3 +76,4 @@ Paths* lcpat_combine_paths
 	Paths* paths1,
 	Paths* paths2
 );
+#endif

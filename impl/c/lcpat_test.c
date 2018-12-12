@@ -6,52 +6,49 @@
 #include "lcpat.h"
 
 int n_vertices = 10;
-double** edgeCosts;
-
+double** edge_costs;
 
 int suit_initialize ( void )
 {
-	edgeCosts = malloc(sizeof(double**) * n_vertices);
+	edge_costs = calloc(n_vertices, sizeof(double*));
 	for (int i = 0; i < n_vertices; i++) {
-		edgeCosts[i] = malloc(sizeof(double**) * n_vertices);
-		for (int j = 0; j < n_vertices; j++) {
-			edgeCosts[i][j] = 0;
-		}
+		edge_costs[i] = calloc(n_vertices, sizeof(double));
 	}
-	edgeCosts[0][8] = 1.0;
-	edgeCosts[1][2] = 1.0;
-	edgeCosts[1][4] = 1.0;
-	edgeCosts[2][1] = 1.0;
-	edgeCosts[2][3] = 1.0;
-	edgeCosts[2][5] = 1.0;
-	edgeCosts[3][2] = 1.0;
-	edgeCosts[3][6] = 1.0;
-	edgeCosts[4][1] = 1.0;
-	edgeCosts[4][5] = 1.0;
-	edgeCosts[4][7] = 1.0;
-	edgeCosts[5][4] = 1.0;
-	edgeCosts[5][2] = 1.0;
-	edgeCosts[5][6] = 1.0;
-	edgeCosts[5][8] = 1.0;
-	edgeCosts[6][5] = 1.0;
-	edgeCosts[6][3] = 1.0;
-	edgeCosts[6][9] = 1.0;
-	edgeCosts[7][4] = 1.0;
-	edgeCosts[7][8] = 1.0;
-	edgeCosts[8][7] = 1.0;
-	edgeCosts[8][5] = 1.0;
-	edgeCosts[8][9] = 1.0;
-	edgeCosts[8][0] = 1.0;
-	edgeCosts[9][8] = 1.0;
-	edgeCosts[9][6] = 1.0;
+
+	edge_costs[0][8] = 1.0;
+	edge_costs[1][2] = 1.0;
+	edge_costs[1][4] = 1.0;
+	edge_costs[2][1] = 1.0;
+	edge_costs[2][3] = 1.0;
+	edge_costs[2][5] = 1.0;
+	edge_costs[3][2] = 1.0;
+	edge_costs[3][6] = 1.0;
+	edge_costs[4][1] = 1.0;
+	edge_costs[4][5] = 1.0;
+	edge_costs[4][7] = 1.0;
+	edge_costs[5][4] = 1.0;
+	edge_costs[5][2] = 1.0;
+	edge_costs[5][6] = 1.0;
+	edge_costs[5][8] = 1.0;
+	edge_costs[6][5] = 1.0;
+	edge_costs[6][3] = 1.0;
+	edge_costs[6][9] = 1.0;
+	edge_costs[7][4] = 1.0;
+	edge_costs[7][8] = 1.0;
+	edge_costs[8][7] = 1.0;
+	edge_costs[8][5] = 1.0;
+	edge_costs[8][9] = 1.0;
+	edge_costs[8][0] = 1.0;
+	edge_costs[9][8] = 1.0;
+	edge_costs[9][6] = 1.0;
 
 	return CUE_SUCCESS;
 }
 
 void test_thresholdCost_less_than_stepCost( void )
 {
-	BackTrackMemory memory;
-	Paths* result = lcpat(n_vertices, 5, edgeCosts, 3, 1, &memory);
+	BackTrackMemory memory = { .capacity = INITIAL_MEMORY_CAPACITY, .callsMemory = calloc(INITIAL_MEMORY_CAPACITY, sizeof(BackTrackCallMemory)) };
+	Paths* result = lcpat(n_vertices, 5, edge_costs, 3, 1, &memory);
 		
 	CU_ASSERT_EQUAL(result->count, 4);
 
@@ -66,16 +63,18 @@ void test_thresholdCost_less_than_stepCost( void )
 
 	CU_ASSERT_EQUAL(result->paths[3].vertices[0], 5);
 	CU_ASSERT_EQUAL(result->paths[3].vertices[1], 8);
+
+	free(result);
 }
 
 void test_thresholdCost_more_than_stepCost ( void )
 {
-	CU_ASSERT(true);
+	BackTrackMemory memory;
+	Paths* result = lcpat(n_vertices, 5, edge_costs, 3, 8, &memory);
 }
 
 int suit_cleanup ( void )
 {
-	return CUE_SUCCESS;
 }
 
 int main ( void )

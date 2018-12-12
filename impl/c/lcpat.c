@@ -88,6 +88,13 @@ Paths* lcpat_recall
 	BackTrackMemory* memory
 )
 {
+	for (int i = 0; i < memory->count; i++) {
+		BackTrackCallMemory callMemory = memory->callsMemory[i];
+		if (callMemory.start_vertex == start_vertex && callMemory.threshold_cost == threshold_cost) {
+			return callMemory.paths;
+		}
+	}
+
 	return NULL;
 }
 
@@ -99,6 +106,16 @@ void lcpat_remember
 	BackTrackMemory* memory
 )
 {
+	if (memory->count == memory->capacity - 1) {
+		memory->capacity = memory->capacity + INITIAL_MEMORY_CAPACITY;
+		BackTrackCallMemory* oldCallsMemory = memory->callsMemory;
+
+		memory->callsMemory = calloc(memory->capacity, sizeof(BackTrackCallMemory));
+		memcpy(memory->callsMemory, oldCallsMemory, sizeof(BackTrackCallMemory) * memory->count);
+	}
+
+	memory->callsMemory[memory->count] = (BackTrackCallMemory) { .start_vertex = start_vertex, .threshold_cost = threshold_cost, .paths = paths };
+	memory->count += 1;
 }
 
 Paths* lcpat_backtrack
@@ -109,7 +126,7 @@ Paths* lcpat_backtrack
 	double threshold_cost
 )
 {
-	Path* currentVertexPath = malloc(sizeof(Path));
+	Path* currentVertexPath = calloc(1, sizeof(Path));
 	currentVertexPath->length = 1;
 	currentVertexPath->cost = 0;
 	currentVertexPath->vertices = &(int) { start_vertex };
@@ -117,7 +134,7 @@ Paths* lcpat_backtrack
 	Paths* paths = NULL;
 
 	if (threshold_cost <= 0) {
-		paths = malloc(sizeof(Paths));
+		paths = calloc(1, sizeof(Paths));
 		paths->count = 1;
 		paths->paths = currentVertexPath;
 
@@ -152,12 +169,12 @@ Paths* lcpat_merge_paths
 {
 	int count = right_paths->count;
 
-	Path* paths = malloc(sizeof(Path) * count);
+	Path* paths = calloc(count, sizeof(Path));
 	for (int i = 0; i < count; i++) {
 
 		paths[i].cost = left_path->cost + jump_cost + right_paths->paths[i].cost;
 		paths[i].length = left_path->length + right_paths->paths[i].length;
-		paths[i].vertices = malloc(paths[i].length * sizeof(int));
+		paths[i].vertices = calloc(paths[i].length, sizeof(int));
 
 		memcpy(
 			paths[i].vertices,
@@ -171,7 +188,7 @@ Paths* lcpat_merge_paths
 		);
 	}
 
-	Paths* result = malloc(sizeof(Paths));
+	Paths* result = calloc(1, sizeof(Paths));
 	result->count = count;
 	result->paths = paths;
 
@@ -192,7 +209,7 @@ Paths* lcpat_combine_paths
 		count += paths2->count;
 	}
 
-	Path* paths = malloc(sizeof(Path) * count);
+	Path* paths = calloc(count, sizeof(Path));
 	size_t copy_offset = 0;
 	if (paths1 != NULL) {
 		memcpy(paths + copy_offset, paths1->paths, sizeof(Path) * paths1->count);
@@ -202,7 +219,7 @@ Paths* lcpat_combine_paths
 		memcpy(paths + copy_offset, paths2->paths, sizeof(Path) * paths2->count);
 	}
 
-	Paths* result = malloc(sizeof(Paths));
+	Paths* result = calloc(1, sizeof(Paths));
 	result->count = count;
 	result->paths = paths;
 
