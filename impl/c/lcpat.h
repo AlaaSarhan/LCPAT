@@ -26,6 +26,8 @@ typedef struct
 
 typedef struct
 {
+	size_t hits;
+	size_t misses;
 	size_t count;
 	size_t capacity;
 	BackTrackCallMemory* callsMemory;

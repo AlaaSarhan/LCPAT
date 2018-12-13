@@ -32,14 +32,14 @@ Paths* lcpat
 			Path left_path = left_paths->paths[i];
 			int path_last_vertex = left_path.vertices[left_path.length - 1];
 			for (int j = 0; j < n_vertices; j++) {
-				if (edge_costs[path_last_vertex][j] < 0) continue;
+				if (edge_costs[path_last_vertex][j] <= 0) continue;
 
 				Paths* right_paths = lcpat (
 					n_vertices,
 					j,
 					edge_costs,
 					step_cost,
-					threshold_cost - left_path.cost,
+					threshold_cost - left_path.cost - edge_costs[path_last_vertex][j],
 					memory
 				);
 
@@ -91,10 +91,12 @@ Paths* lcpat_recall
 	for (int i = 0; i < memory->count; i++) {
 		BackTrackCallMemory callMemory = memory->callsMemory[i];
 		if (callMemory.start_vertex == start_vertex && callMemory.threshold_cost == threshold_cost) {
+			memory->hits++;
 			return callMemory.paths;
 		}
 	}
 
+	memory->misses++;
 	return NULL;
 }
 
@@ -114,7 +116,12 @@ void lcpat_remember
 		memcpy(memory->callsMemory, oldCallsMemory, sizeof(BackTrackCallMemory) * memory->count);
 	}
 
-	memory->callsMemory[memory->count] = (BackTrackCallMemory) { .start_vertex = start_vertex, .threshold_cost = threshold_cost, .paths = paths };
+	BackTrackCallMemory* callMemory = calloc(1, sizeof(BackTrackCallMemory));
+	callMemory->start_vertex = start_vertex;
+	callMemory->threshold_cost = threshold_cost;
+	callMemory->paths = paths;
+
+	memory->callsMemory[memory->count] = *callMemory;
 	memory->count += 1;
 }
 

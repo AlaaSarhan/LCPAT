@@ -49,7 +49,7 @@ void test_thresholdCost_less_than_stepCost( void )
 {
 	BackTrackMemory memory = { .capacity = INITIAL_MEMORY_CAPACITY, .callsMemory = calloc(INITIAL_MEMORY_CAPACITY, sizeof(BackTrackCallMemory)) };
 	Paths* result = lcpat(n_vertices, 5, edge_costs, 3, 1, &memory);
-		
+
 	CU_ASSERT_EQUAL(result->count, 4);
 
 	CU_ASSERT_EQUAL(result->paths[0].vertices[0], 5);
@@ -69,8 +69,14 @@ void test_thresholdCost_less_than_stepCost( void )
 
 void test_thresholdCost_more_than_stepCost ( void )
 {
-	BackTrackMemory memory;
-	Paths* result = lcpat(n_vertices, 5, edge_costs, 3, 8, &memory);
+	BackTrackMemory memory = { .capacity = INITIAL_MEMORY_CAPACITY, .callsMemory = calloc(INITIAL_MEMORY_CAPACITY, sizeof(BackTrackCallMemory)) };
+	Paths* result = lcpat(n_vertices, 5, edge_costs, 3, 13, &memory);
+
+	printf("DP Memory Hits  : %d\n", memory.hits);
+	printf("DP Memory Misses: %d\n", memory.misses);
+	printf("Paths count     : %d", result->count);
+
+	free(result);
 }
 
 int suit_cleanup ( void )
